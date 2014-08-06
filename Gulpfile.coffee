@@ -24,7 +24,13 @@ gulp.task "browser-sync", ->
 
 gulp.task "inject-sass", ->
   gulp.src('./css/app.scss')
-    .pipe plugins.inject gulp.src(['css/**/_*.scss'], {read: false}), 
+    .pipe plugins.inject gulp.src(['css/**/__*.scss'], {read: false}), 
+      relative: true
+      starttag: '// inject:top:scss'
+      endtag: '// endinject'
+      transform: (filepath, file, i, length) ->
+        return "@import \"#{filepath}\";"
+    .pipe plugins.inject gulp.src(['css/**/_*.scss', '!css/**/__*.scss'], {read: false}), 
       relative: true
       starttag: '// inject:scss'
       endtag: '// endinject'
