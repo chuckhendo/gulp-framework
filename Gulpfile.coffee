@@ -9,6 +9,27 @@ runSequence     = require('run-sequence')
 rimraf          = require('rimraf')
 merge           = require('merge-stream')
 browserSync     = require('browser-sync')
+contentful      = require('contentful')
+
+contentfulClient = contentful.createClient
+  accessToken: '',
+  space: ''
+
+swigOpts =
+  defaults:
+    cache: false
+    locals:
+      site_name: ""
+  data: 
+    headline: ""
+
+getContentfulData = (file, cb) ->
+  contentfulClient.entries {}, (err, entries) ->
+    if (err)
+      console.log(err)
+      return
+    cb(undefined, { 'entries': entries })
+
 
 
 ###
@@ -48,9 +69,10 @@ gulp.task "inject-coffee", ->
 
 gulp.task "inject-html", ->
   gulp.src('index.html')
-      .pipe(plugins.fileInclude())
-      .pipe(gulp.dest('.tmp/'))
-      .pipe(browserSync.reload(stream: true))
+    .pipe(plugins.data(getContentfulData))
+    .pipe(plugins.swig(swigOpts))
+    .pipe(gulp.dest('.tmp/'))
+    .pipe(browserSync.reload(stream: true))
 
 gulp.task "sass", ->
   sassStream = gulp.src('css/app.scss')
@@ -75,7 +97,6 @@ gulp.task "coffee", ->
     .pipe(plugins.coffee(onError: browserSync.notify))
     .pipe(browserSync.reload(stream: true))
     .pipe(gulp.dest('.tmp/js'))
-
 
 gulp.task 'bower', ->
   gulp.src(['index.html', 'css/app.scss'], { base: './' })
