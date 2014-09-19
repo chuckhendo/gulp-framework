@@ -1,19 +1,14 @@
 require('coffee-script/register');
 
 gulp            = require("gulp")
+path            = require("path")
 gulpLoadPlugins = require('gulp-load-plugins')
-plugins         = gulpLoadPlugins()
-lazypipe        = require('lazypipe')
+plugins         = gulpLoadPlugins({config: path.join(__dirname + "/package.json")})
 wiredep         = require('wiredep').stream
 runSequence     = require('run-sequence')
 rimraf          = require('rimraf')
-merge           = require('merge-stream')
 browserSync     = require('browser-sync')
-contentful      = require('contentful')
 
-contentfulClient = contentful.createClient
-  accessToken: '',
-  space: ''
 
 swigOpts =
   defaults:
@@ -22,14 +17,6 @@ swigOpts =
       site_name: ""
   data: 
     headline: ""
-
-getContentfulData = (file, cb) ->
-  contentfulClient.entries {}, (err, entries) ->
-    if (err)
-      console.log(err)
-      return
-    cb(undefined, { 'entries': entries })
-
 
 
 ###
@@ -69,7 +56,6 @@ gulp.task "inject-coffee", ->
 
 gulp.task "inject-html", ->
   gulp.src('index.html')
-    .pipe(plugins.data(getContentfulData))
     .pipe(plugins.swig(swigOpts))
     .pipe(gulp.dest('.tmp/'))
     .pipe(browserSync.reload(stream: true))
@@ -138,9 +124,9 @@ Minify and concatenate files
 gulp.task 'build', ->
   gulp.src('.tmp/index.html')
     .pipe usemin
-      css: [minifyCss(), 'concat'],
-      html: [minifyHtml({empty: true})],
-      js: [uglify()]
+      css: [plugins.minifyCss(), 'concat'],
+      html: [plugins.minifyHtml({empty: true})],
+      js: [plugins.uglify()]
     .pipe(gulp.dest('build/'))
 
 
@@ -152,3 +138,5 @@ gulp.task "default", [
   "browser-sync"
   "watch"
 ]
+
+module.exports = gulp
