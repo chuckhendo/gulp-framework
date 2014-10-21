@@ -62,10 +62,10 @@ gulp.task "inject-html", ->
 
 gulp.task "sass", ->
   sassStream = gulp.src('css/app.scss')
-    .pipe plugins.plumber()
+    .pipe plugins.plumber (err) ->
+      console.log err
     .pipe plugins.clipEmptyFiles()
     .pipe plugins.sass
-      onError: browserSync.notify
       includePaths: ['css']
     .pipe plugins.autoprefixer [
         "last 15 versions"
@@ -123,7 +123,7 @@ Minify and concatenate files
 ###
 gulp.task 'build', ->
   gulp.src('.tmp/index.html')
-    .pipe usemin
+    .pipe plugins.usemin
       css: [plugins.minifyCss(), 'concat'],
       html: [plugins.minifyHtml({empty: true})],
       js: [plugins.uglify()]
